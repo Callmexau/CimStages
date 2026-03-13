@@ -1,0 +1,30 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+public function up(): void
+{
+    Schema::table('demande_stages', function (Blueprint $table) {
+        $table
+            ->string('experience_professionnelle')
+            ->default('0 mois')
+            ->after('filiere');
+    });
+}
+
+
+public function down(): void
+{
+    Schema::table('demande_stages', function (Blueprint $table) {
+        $table->dropColumn('experience_professionnelle');
+    });
+}
+
+};
