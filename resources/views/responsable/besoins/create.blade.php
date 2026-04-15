@@ -26,7 +26,18 @@
 
                 <form method="POST" action="{{ route('responsable.besoins.store') }}">
                     @csrf
+
+                    @if(request('demande'))
+                        <input type="hidden" name="demande_stage_id" value="{{ request('demande') }}">
+                    @endif
                     <div class="card-body">
+
+                    @if(request('renouvellement'))
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Vous êtes en train de créer une demande pour un <strong>renouvellement de stage</strong>.
+                        </div>
+                    @endif
 
                         {{-- Informations du demandeur --}}
                         <h4 class="bg-success text-white p-2 text-center text-uppercase mb-4">
@@ -105,11 +116,13 @@
                             <div class="card-header bg-success py-1"><h6 class="card-title text-white">Type de la demande</h6></div>
                             <div class="card-body d-flex justify-content-around">
                                 <div class="custom-control custom-radio">
-                                    <input class="custom-control-input" type="radio" id="nouvelle" name="type_demande" value="Nouvelle" checked>
+                                    <input class="custom-control-input" type="radio" id="nouvelle" name="type_demande" value="Nouvelle"
+                                        {{ !request('renouvellement') ? 'checked' : '' }}>
                                     <label for="nouvelle" class="custom-control-label font-weight-normal">Nouvelle</label>
                                 </div>
                                 <div class="custom-control custom-radio">
-                                    <input class="custom-control-input" type="radio" id="renouvellement" name="type_demande" value="Renouvellement">
+                                    <input class="custom-control-input" type="radio" id="renouvellement" name="type_demande" value="Renouvellement"
+                                        {{ request('renouvellement') ? 'checked' : '' }}>
                                     <label for="renouvellement" class="custom-control-label font-weight-normal">Renouvellement</label>
                                 </div>
                             </div>

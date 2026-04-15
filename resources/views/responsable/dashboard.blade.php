@@ -1,114 +1,283 @@
 @extends('layouts.adminlte')
 
 @section('content')
-<div class="d-flex flex-column" style="height: calc(100vh - 70px); overflow: hidden; background-color: #f4f7f6;">
+<div class="dashboard-container">
     
-    <div class="flex-shrink-0 px-4 pt-3">
-        <div class="d-flex align-items-center justify-content-between bg-white p-3 shadow-sm mb-3" style="border-radius: 12px; border-left: 4px solid #1a5a45;">
-            <div class="d-flex align-items-center">
-                <i class="fas fa-user-circle fa-2x text-cim-green mr-3"></i>
-                <div>
-                    <h5 class="mb-0 font-weight-bold">{{ Auth::user()->name ?? 'Responsable' }}</h5>
-                    <small class="text-muted">{{ now()->translatedFormat('d M Y') }}</small>
-                </div>
+    {{-- HEADER DYNAMIQUE --}}
+    <div class="header-section px-4 pt-4 pb-2">
+        <div class="d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <h2 class="h3 font-weight-bold text-dark mb-1">Tableau de Bord</h2>
+                <p class="text-muted mb-0">
+                    <span class="opacity-75"><i class="far fa-calendar-alt mr-2"></i>{{ ucfirst(now()->translatedFormat('l d F Y')) }}</span>
+                </p>
             </div>
-            <div class="text-right">
-                <span class="badge badge-pill bg-soft-success px-3" style="color: #1a5a45; background: #e8f5e9;">En ligne</span>
+            <div class="user-pill d-none d-sm-flex align-items-center bg-white shadow-sm border px-3 py-2">
+                <div class="status-indicator mr-2"></div>
+                <span class="small font-weight-bold text-secondary">
+                    {{ Auth::user()->name ?? 'Responsable' }}
+                </span>
             </div>
         </div>
 
-        <div class="row mb-3">
+        {{-- STATS RAPIDES --}}
+        <div class="row mb-2">
             <div class="col-md-3">
-                <div class="card border-0 shadow-sm mb-0" style="border-radius: 10px;">
-                    <div class="card-body py-2 px-3">
-                        <small class="text-uppercase text-muted font-weight-bold">Total</small>
-                        <h4 class="mb-0 font-weight-bold">{{ $demandes->count() }}</h4>
+                <div class="stat-card border-0 shadow-sm bg-white p-3 mb-3">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box bg-primary-soft text-primary mr-3">
+                            <i class="fas fa-inbox"></i>
+                        </div>
+                        <div>
+                            <span class="text-uppercase text-muted ls-1 small font-weight-bold">Total Demandes</span>
+                            <h3 class="mb-0 font-weight-bold text-dark">{{ $demandes->count() }}</h3>
+                        </div>
                     </div>
                 </div>
             </div>
+
             <div class="col-md-3">
-                <div class="card border-0 shadow-sm mb-0" style="border-radius: 10px;">
-                    <div class="card-body py-2 px-3">
-                        <small class="text-uppercase text-muted font-weight-bold">En attente</small>
-                        <h4 class="mb-0 font-weight-bold text-warning">{{ $demandes->where('statut', 'en attente')->count() }}</h4>
+                <div class="stat-card border-0 shadow-sm bg-white p-3 mb-3">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box bg-warning-soft text-warning mr-3">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <div>
+                            <span class="text-uppercase text-muted ls-1 small font-weight-bold">En attente</span>
+                            <h3 class="mb-0 font-weight-bold text-dark">
+                                {{ $demandes->where('statut','en_attente')->count() }}
+                            </h3>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <div class="col-md-3">
+                <div class="stat-card border-0 shadow-sm bg-white p-3 mb-3">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box bg-success-soft text-success mr-3">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <div>
+                            <span class="text-uppercase text-muted ls-1 small font-weight-bold">En cours</span>
+                            <h3 class="mb-0 font-weight-bold text-dark">{{ $stagiairesEnCours }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="stat-card border-0 shadow-sm bg-white p-3 mb-3">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box bg-danger-soft text-danger mr-3">
+                            <i class="fas fa-clipboard-check"></i>
+                        </div>
+                        <div>
+                            <span class="text-uppercase text-muted ls-1 small font-weight-bold">
+                                Non évalués
+                            </span>
+                            <h3 class="mb-0 font-weight-bold text-dark">
+                                {{ $stagiairesTerminesNonEvalues }}
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
-    <div class="flex-grow-1 px-4 pb-3" style="min-height: 0;">
-        <div class="card border-0 shadow-sm h-100 d-flex flex-column" style="border-radius: 15px; overflow: hidden;">
-            <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
-                <h6 class="mb-0 font-weight-bold"><i class="fas fa-stream mr-2 text-cim-green"></i>Flux des demandes</h6>
-            </div>
+    {{-- GRILLE DES DEMANDES --}}
+    <div class="main-scroll-area px-4 pb-5">
+        <div class="row">
+            @forelse($demandes as $demande)
+                <div class="col-xl-4 col-lg-6 mb-4">
+                    <div class="card card-modern h-100">
+                        
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-styled mr-3">
+                                        {{ strtoupper(substr($demande->stagiaire->prenom ?? 'S', 0, 1)) }}
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 font-weight-bold text-dark">
+                                            {{ $demande->stagiaire->prenom ?? 'N/A' }} {{ strtoupper($demande->stagiaire->nom ?? '') }}
+                                        </h6>
+                                        <small class="text-muted">Reçu le {{ $demande->created_at->format('d/m/Y') }}</small>
+                                    </div>
+                                </div>
+                                
+                                @php
+                                    $statusMap = [
+                                        'en_attente' => ['class' => 's-pending', 'label' => 'En attente'],
+                                        'validee'    => ['class' => 's-success', 'label' => 'Validée'],
+                                        'rejetee'    => ['class' => 's-danger', 'label' => 'Refusée'],
+                                        'transferée' => ['class' => 's-info', 'label' => 'Transférée'],
+                                    ];
+                                    $currentStatus = $statusMap[$demande->statut] ?? ['class' => 's-default', 'label' => $demande->statut];
+                                @endphp
+                                <span class="badge-dot {{ $currentStatus['class'] }}">
+                                    {{ $currentStatus['label'] }}
+                                </span>
+                            </div>
 
-            <div class="table-responsive flex-grow-1" style="overflow-y: auto; background: white;">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="sticky-top bg-light" style="z-index: 10;">
-                        <tr>
-                            <th class="border-0 px-4 small font-weight-bold text-muted">CANDIDAT</th>
-                            <th class="border-0 small font-weight-bold text-muted">DATE</th>
-                            <th class="border-0 text-center small font-weight-bold text-muted">STATUT</th>
-                            <th class="border-0 text-right px-4 small font-weight-bold text-muted">ACTION</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($demandes as $demande)
-                            <tr>
-                                <td class="px-4 py-3 font-weight-bold text-dark">
-                                    {{ $demande->etudiant->name ?? 'N/A' }}
-                                </td>
-                                <td class="py-3 text-muted small">{{ $demande->besoin->titre ?? 'Non spécifié' }}</td>
-                                <td class="py-3 text-muted small">{{ $demande->created_at->format('d/m/y') }}</td>
-                                <td class="text-center py-3">
-                                    @php $isAttente = ($demande->statut == 'en attente'); @endphp
-                                    <span class="badge {{ $isAttente ? 'badge-warning' : 'badge-success' }} px-2 py-1" style="font-size: 9px;">
-                                        {{ strtoupper($demande->statut) }}
-                                    </span>
-                                </td>
-                                <td class="text-right px-4 py-3">
-                                    <a href="#" class="btn btn-xs btn-flat" style="background-color: #1a5a45; color: white;">
-                                        <i class="fas fa-chevron-right"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" class="text-center py-5 text-muted">Aucune demande reçue</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                            <div class="info-grid py-3 px-3 rounded-xl mb-4">
+                                <div class="row no-gutters">
+                                    <div class="col-6 pr-2 border-right">
+                                        <label class="d-block text-muted text-uppercase mb-1">Filière</label>
+                                        <span class="font-weight-bold small text-dark">{{ $demande->filiere ?? 'N/A' }}</span>
+                                    </div>
+                                    <div class="col-6 pl-3">
+                                        <label class="d-block text-muted text-uppercase mb-1">Niveau</label>
+                                        <span class="font-weight-bold small text-dark">{{ $demande->niveau_etude ?? 'N/A' }}</span>
+                                    </div>
+                                </div>
+                            </div>
 
-            <div class="card-footer bg-white border-top py-2 px-4 d-flex justify-content-between align-items-center">
-                <small class="text-muted font-italic">Fin de liste | CIMBURKINA</small>
-                <span class="badge badge-light border text-muted">{{ $demandes->count() }} lignes</span>
-            </div>
+                            <div class="d-flex align-items-center justify-content-between pt-2">
+                                <a href="{{ route('responsable.demande.show', $demande) }}" class="btn btn-action-main">
+                                    <span>Consulter le dossier</span>
+                                    <i class="fas fa-chevron-right ml-2"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <div class="col-12 text-center py-5">
+                    <div class="empty-state">
+                        <div class="empty-icon mb-3">
+                            <i class="fas fa-folder-open"></i>
+                        </div>
+                        <h5 class="text-muted font-weight-light">Aucune demande reçu pour le moment</h5>
+                    </div>
+                </div>
+            @endforelse
         </div>
     </div>
 </div>
 
 <style>
-    /* Force le conteneur AdminLTE à ne pas scroller */
-    .content-wrapper { height: 100vh !important; overflow: hidden !important; }
-    body { overflow: hidden !important; }
-
-    /* Fixe l'en-tête du tableau pendant le scroll */
-    .sticky-top {
-        position: sticky;
-        top: 0;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    /* Structure & Scroll */
+    .dashboard-container {
+        height: calc(100vh - 60px);
+        display: flex;
+        flex-direction: column;
+        background-color: #f4f7f9;
+        overflow: hidden;
+    }
+    .main-scroll-area {
+        flex-grow: 1;
+        overflow-y: auto;
+        scrollbar-width: thin;
     }
 
-    /* Scrollbar élégante pour le tableau */
-    .table-responsive::-webkit-scrollbar { width: 4px; }
-    .table-responsive::-webkit-scrollbar-track { background: #f1f1f1; }
-    .table-responsive::-webkit-scrollbar-thumb { background: #1a5a45; border-radius: 10px; }
+    /* Typographie */
+    .ls-1 { letter-spacing: 0.5px; }
     
-    .bg-soft-success { background-color: rgba(26, 90, 69, 0.1); }
-    .text-cim-green { color: #1a5a45; }
-    .btn-xs { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+    /* Composants Header */
+    .user-pill {
+        border-radius: 100px;
+        border: 1px solid #e1e8ed !important;
+    }
+    .status-indicator {
+        width: 8px;
+        height: 8px;
+        background-color: #2ecc71;
+        border-radius: 50%;
+        box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.2);
+    }
+
+    /* Stat Cards */
+    .stat-card {
+        border-radius: 16px;
+        transition: transform 0.3s ease;
+    }
+    .icon-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    .bg-primary-soft { background-color: #eef2ff; color: #4f46e5; }
+    .bg-warning-soft { background-color: #fffbeb; color: #d97706; }
+
+    /* Card Demande */
+    .card-modern {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .card-modern:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+    }
+
+    .avatar-styled {
+        width: 45px;
+        height: 45px;
+        background: linear-gradient(135deg, #1a5a45 0%, #34d399 100%);
+        color: white;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        box-shadow: 0 4px 10px rgba(26, 90, 69, 0.2);
+    }
+
+    .info-grid {
+        background-color: #f8fafc;
+        border: 1px solid #edf2f7;
+    }
+    .info-grid label {
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+    }
+
+    /* Badges */
+    .badge-dot {
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 6px;
+    }
+    .s-pending { background-color: #fef3c7; color: #92400e; }
+    .s-success { background-color: #dcfce7; color: #166534; }
+    .s-danger  { background-color: #fee2e2; color: #991b1b; }
+    .s-info    { background-color: #e0f2fe; color: #075985; }
+
+    /* Boutons */
+    .btn-action-main {
+        background-color: transparent;
+        color: #1a5a45;
+        border: 1px solid #1a5a45;
+        font-weight: 600;
+        font-size: 0.85rem;
+        padding: 8px 20px;
+        border-radius: 10px;
+        transition: all 0.2s;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .btn-action-main:hover {
+        background-color: #1a5a45;
+        color: white;
+        text-decoration: none;
+    }
+
+    /* Empty State */
+    .empty-icon {
+        font-size: 4rem;
+        color: #e2e8f0;
+    }
 </style>
 @endsection

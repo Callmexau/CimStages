@@ -55,7 +55,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($besoins->whereIn('statut', ['en_attente', 'en_attente_validation']) as $besoin)
+                        @forelse($besoins->where('statut', 'en_attente') as $besoin)
                             <tr class="hover-row-light">
                                 <td>
                                     <div class="d-flex align-items-center">
@@ -152,12 +152,29 @@
                                 </td>
 
                                 <td class="text-right">
-                                    {{-- ✅ ROUTE CORRIGÉE --}}
-                                    <a href="{{ route('agent.besoins.show', $besoin->id) }}"
-                                       class="btn btn-outline-secondary btn-sm rounded-lg">
-                                        Consulter
-                                    </a>
+                                    <div class="d-flex justify-content-end align-items-center">
+
+                                        <a href="{{ route('agent.besoins.show', $besoin->id) }}"
+                                        class="btn btn-outline-secondary btn-sm rounded-lg mr-2">
+                                            Consulter
+                                        </a>
+
+                                        @if(strtolower($besoin->type_demande) === 'renouvellement' && $besoin->demande_stage_id)
+                                            <form action="{{ route('agent.besoins.renouvelerStage', $besoin->id) }}"
+                                                method="POST"
+                                                style="display:inline;">
+                                                @csrf
+                                                <button type="submit"
+                                                        class="btn btn-success btn-sm rounded-lg"
+                                                        onclick="return confirm('Confirmer le renouvellement de ce stage ?')">
+                                                    <i class="fas fa-redo-alt mr-1"></i> Renouveler
+                                                </button>
+                                            </form>
+                                        @endif
+
+                                    </div>
                                 </td>
+
                             </tr>
                         @empty
                             <tr>

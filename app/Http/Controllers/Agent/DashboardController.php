@@ -18,10 +18,9 @@ class DashboardController extends Controller
 
             'demandes_rejetees' => DemandeStage::where('statut', 'rejetee')->count(),
 
-            'besoins' => BesoinStage::whereIn('statut', [
-                'en_attente',
-                'en_attente_validation'
-            ])->count(),
+            'besoins_en_attente' => \App\Models\BesoinStage::where('statut', 'en_attente')->count(),
+
+            'besoins_valides'    => \App\Models\BesoinStage::where('statut', 'valide')->count(),
         ];
 
         // Retour de la vue avec les stats

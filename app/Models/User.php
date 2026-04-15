@@ -74,4 +74,9 @@ class User extends Authenticatable
         return trim($this->prenom . ' ' . $this->nom);
     }
 
+    public function demandes()
+    {
+        return $this->hasMany(\App\Models\DemandeStage::class, 'user_id');
+    }
+
 }

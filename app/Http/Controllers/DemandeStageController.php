@@ -28,6 +28,7 @@ class DemandeStageController extends Controller
             'universite'   => 'required|string|max:255',
             'structure_id' => 'required|exists:structures,id',
             'telephone'    => 'required|string|max:30',
+            'type_stage'   => 'required|in:soutenance,perfectionnement',
             'cv'   => 'required|file|mimes:pdf|max:5120',
             'cnib' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
@@ -43,6 +44,7 @@ class DemandeStageController extends Controller
             'filiere'      => $request->filiere,
             'experience_professionnelle' => $request->experience_professionnelle,
             'universite'   => $request->universite,
+            'type_stage' => $request->type_stage,
             'structure_id' => $request->structure_id,
             'telephone'    => $request->telephone,
             'cv_path'      => $cvPath,

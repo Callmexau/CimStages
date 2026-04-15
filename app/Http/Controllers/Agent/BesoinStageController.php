@@ -1,9 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Agent;
 
 use App\Models\BesoinStage;
 use Illuminate\Http\Request;
+use App\Models\DemandeStage;
+use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 
 class BesoinStageController extends Controller
 {
@@ -88,5 +91,53 @@ class BesoinStageController extends Controller
         return redirect()
             ->route('agent.besoins.show', $besoin->id)
             ->with('success', 'Expression de besoin rejetée avec succès.');
+    }
+
+    public function demandesLiees(BesoinStage $besoin)
+    {
+        $demandes = DemandeStage::where('statut', 'en_attente')
+            ->latest()
+            ->get();
+
+        return view('agent.besoins.demandes', compact('besoin','demandes'));
+    }
+
+    public function renouvelerStage(BesoinStage $besoin)
+    {
+        if (strtolower($besoin->type_demande) !== 'renouvellement') {
+            return back()->with('error', 'Ce besoin ne correspond pas à un renouvellement.');
+        }
+
+        if (!$besoin->demande_stage_id) {
+            return back()->with('error', 'Aucun stage source n’est lié à ce besoin.');
+        }
+
+        $demande = DemandeStage::find($besoin->demande_stage_id);
+
+        if (!$demande) {
+            return back()->with('error', 'Le stage à renouveler est introuvable.');
+        }
+
+        $baseDate = $demande->fin_stage
+            ? Carbon::parse($demande->fin_stage)
+            : now();
+
+        $nouvelleFin = match ($besoin->duree) {
+            '1 mois' => $baseDate->copy()->addMonth(),
+            '2 mois' => $baseDate->copy()->addMonths(2),
+            '3 mois' => $baseDate->copy()->addMonths(3),
+            default => $baseDate->copy()->addMonth(),
+        };
+
+        $demande->update([
+            'fin_stage' => $nouvelleFin,
+            'statut' => 'acceptee',
+        ]);
+
+        $besoin->update([
+            'statut' => 'traite',
+        ]);
+
+        return back()->with('success', 'Le stage a été renouvelé avec succès.');
     }
 }

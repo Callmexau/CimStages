@@ -14,6 +14,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ResponsableController;
 use App\Models\BesoinStage;
 use App\Http\Controllers\Darh\BesoinsController;
+use App\Http\Controllers\EvaluationController;
+use App\Http\Controllers\Responsable\RenouvellementController;
+use App\Http\Controllers\Agent\BesoinStageController;
+use App\Http\Controllers\Admin\ActivityLogController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -107,6 +111,9 @@ Route::prefix('admin')
             ->name('users.reset-password');
 
         Route::resource('structures', AdminStructureController::class);
+
+        Route::get('/logs', [ActivityLogController::class, 'index'])
+            ->name('logs.index');
     });
 
 /*
@@ -182,6 +189,12 @@ Route::prefix('agent')
 
         })->name('besoins.transfer');
 
+        Route::get('/besoins/{besoin}/demandes', 
+            [BesoinStageController::class, 'demandesLiees']
+        )->name('besoins.demandes');
+
+        Route::get('/stagiaires-en-cours', [DemandeController::class, 'stagiairesEnCours'])
+            ->name('stagiaires.encours');
 
         Route::post('/demandes/{demande}/transfer', [DemandeController::class, 'transfer'])
             ->name('demande.transfer');
@@ -209,6 +222,20 @@ Route::prefix('agent')
 
         })->name('besoins.pdf');
 
+        // Renouveler un stage
+        Route::post('/demandes/{demande}/renew', [DemandeController::class, 'renew'])
+            ->name('agent.demande.renew');
+
+        // Archives
+        Route::get('/archives', [\App\Http\Controllers\Agent\ArchiveController::class, 'index'])
+            ->name('archives.index');
+
+        Route::get('/demandes/{demande}', [DemandeController::class, 'show'])
+                ->name('demande.show');
+
+        Route::post('/besoins/{besoin}/renouveler-stage', [BesoinStageController::class, 'renouvelerStage'])
+    ->name('besoins.renouvelerStage');
+
     });
 
 /*
@@ -232,6 +259,16 @@ Route::prefix('responsable')
         Route::get('/stagiaires/en-cours', [ResponsableController::class, 'enCours'])
             ->name('stagiaires.enCours');
 
+        // Dossier stagiaire
+        Route::get('/demande/{demande}', [ResponsableController::class, 'show'])
+            ->name('demande.show');
+        
+        Route::post('/demande/{demande}/valider', [ResponsableController::class, 'valider'])
+            ->name('demande.valider');
+
+        Route::post('/demande/{demande}/rejeter', [ResponsableController::class, 'rejeter'])
+            ->name('demande.rejeter');
+
         // Stagiaires terminés
         Route::get('/stagiaires/termines', [ResponsableController::class, 'termines'])
             ->name('stagiaires.termines');
@@ -250,22 +287,27 @@ Route::prefix('responsable')
         // Enregistrement
         Route::post('/besoins', [BesoinController::class, 'store'])
             ->name('besoins.store');
+
+        // Annuler le stage
+        Route::patch('/stages/{id}/terminer', [ResponsableController::class, 'terminerStage'])
+            ->name('stages.terminer');
+
+         // Évaluations
+        Route::get('/evaluations/create/{demande}', [EvaluationController::class, 'create'])
+            ->name('evaluations.create');
+
+        Route::post('/evaluations', [EvaluationController::class, 'store'])
+            ->name('evaluations.store');
+
+        // Renouvellement de stage
+        Route::get('/stages/{demande}/renouveler', [RenouvellementController::class, 'create'])
+            ->name('renouvellement.create');
+
+        Route::post('/stages/{demande}/renouveler', [RenouvellementController::class, 'store'])
+            ->name('renouvellement.store');
     });
 
 
-/*
-|--------------------------------------------------------------------------
-| Évaluations (Responsable uniquement)
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth', 'role:responsable'])->group(function () {
-
-    Route::get('/evaluations/create', [EvaluationStageController::class, 'create'])
-        ->name('evaluation.create');
-
-    Route::post('/evaluations', [EvaluationStageController::class, 'store'])
-        ->name('evaluation.store');
-});
 
 
 /*

@@ -95,9 +95,6 @@
                                     <small class="text-muted font-weight-bold">STAGIAIRES DEMANDÉS</small>
                                 </div>
 
-                                <button class="btn btn-primary btn-block rounded-pill py-2 shadow-sm">
-                                    <i class="fas fa-print mr-2"></i> Imprimer le Bon
-                                </button>
                             </div>
                         </div>
                     </div>

@@ -186,7 +186,22 @@
                                 </form>
                             </div>
                         @else
-                            <span class="badge badge-success py-2 px-3">Dossier Finalisé</span>
+                            <div class="btn-group">
+
+                                <a href="{{ route('agent.demande.index', [
+                                    'structure' => $besoin->structure_id,
+                                    'statut' => 'en_attente',
+                                    'service' => $besoin->service
+                                ]) }}"
+                                class="btn btn-primary px-4">
+                                    <i class="fas fa-users"></i> Voir les CV
+                                </a>
+
+                                <span class="badge badge-success py-2 px-3 ml-2 align-self-center">
+                                    Dossier Finalisé
+                                </span>
+
+                            </div>
                         @endif
                     </div>
 

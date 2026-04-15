@@ -31,6 +31,7 @@ class BesoinStage extends Model
         'nombre_stagiaires',
         'periode',
         'statut',
+        'demande_stage_id',
     ];
 
     protected $casts = [
@@ -51,5 +52,10 @@ class BesoinStage extends Model
     public function structure()
     {
         return $this->belongsTo(Structure::class);
+    }
+
+    public function demandeStage()
+    {
+        return $this->belongsTo(DemandeStage::class, 'demande_stage_id');
     }
 }

@@ -35,13 +35,21 @@
                     </a>
                 </li>
 
-                <!-- Profil / Déconnexion -->
                 <li class="nav-item">
-                    <a href="{{ route('profile.edit') }}" class="nav-link">
-                        <i class="nav-icon fas fa-user-cog"></i>
-                        <p>Profil</p>
+                    <a href="{{ route('agent.stagiaires.encours') }}" class="nav-link">
+                        <i class="nav-icon fas fa-users"></i>
+                        <p>Stagiaires en cours</p>
                     </a>
                 </li>
+
+                <li class="nav-item">
+                    <a href="{{ route('agent.archives.index') }}" class="nav-link">
+                        <i class="nav-icon fas fa-folder-open"></i>
+                        <p>Archives</p>
+                    </a>
+                </li>
+
+                <!-- Déconnexion -->
                 <li class="nav-item">
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf

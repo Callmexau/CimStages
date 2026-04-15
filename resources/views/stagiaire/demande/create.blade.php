@@ -80,7 +80,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="text-secondary">
-                                    <i class="fas fa-building mr-1"></i> Structure de stage souhaitée
+                                    <i class="fas fa-building mr-1"></i> Département de stage souhaitée
                                 </label>
                                 <select
                                     name="structure_id"
@@ -98,12 +98,28 @@
                         </div>
                     </div>
 
+                    {{-- Type de stage --}}
+                    <div class="row mt-2">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="text-secondary">
+                                    <i class="fas fa-layer-group mr-1"></i> Type de stage
+                                </label>
+                                <select name="type_stage" class="form-control form-control-border border-width-2" required>
+                                    <option value="" disabled selected>— Choisir —</option>
+                                    <option value="soutenance">Stage de soutenance</option>
+                                    <option value="perfectionnement">Stage de perfectionnement</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
                     {{-- Expérience + Téléphone --}}
                     <div class="row mt-2">
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="text-secondary">
-                                    <i class="fas fa-briefcase mr-1"></i> E xpérience professionnelle
+                                    <i class="fas fa-briefcase mr-1"></i> Expérience professionnelle
                                 </label>
                                 <select
                                     name="experience_professionnelle"

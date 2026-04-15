@@ -12,10 +12,18 @@
                         <p>Utilisateurs</p>
                     </a>
                 </li>
+
                 <li class="nav-item">
                     <a href="{{ route('admin.structures.index') }}" class="nav-link">
                         <i class="nav-icon fas fa-building"></i>
                         <p>Structures</p>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{{ route('admin.logs.index') }}" class="nav-link">
+                        <i class="nav-icon fas fa-history"></i>
+                        <p>Journal d'activité</p>
                     </a>
                 </li>
             </ul>
