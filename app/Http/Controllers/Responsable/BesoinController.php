@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\BesoinStage;
 use App\Models\DemandeStage;
 use App\Support\ActivityLogger;
+use App\Support\NotificationRecipients;
+use App\Notifications\BesoinCreeNotification;
 
 class BesoinController extends Controller
 {
@@ -84,6 +86,13 @@ ActivityLogger::log(
         'service' => $besoin->service,
     ]
 );
+
+    foreach (NotificationRecipients::agents() as $agent) {
+        if ($agent->email) {
+            $agent->notify(new BesoinCreeNotification($besoin));
+        }
+    }
+    
     return redirect()
         ->route('responsable.besoins.etat')
         ->with('success', 'Besoin transmis aux ressources humaines avec succès.');

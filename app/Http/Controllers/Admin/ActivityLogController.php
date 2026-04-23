@@ -22,7 +22,7 @@ class ActivityLogController extends Controller
                 $query->where('description', 'ILIKE', '%' . $request->search . '%');
             })
             ->latest()
-            ->paginate(20);
+            ->paginate(10);
 
         $actions = ActivityLog::select('action')
             ->distinct()

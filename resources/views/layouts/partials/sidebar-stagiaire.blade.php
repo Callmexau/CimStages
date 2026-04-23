@@ -24,6 +24,18 @@
                         <p>Ma demande</p>
                     </a>
                 </li>
+
+                <!-- Déconnexion -->
+                <li class="nav-item">
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="nav-link btn btn-link text-start w-100">
+                            <i class="nav-icon fas fa-sign-out-alt"></i>
+                            <p>Déconnexion</p>
+                        </button>
+                    </form>
+                </li>
+                
             </ul>
         </nav>
     </div>

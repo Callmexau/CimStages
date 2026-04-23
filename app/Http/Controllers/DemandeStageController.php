@@ -6,8 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\DemandeStage;
 use App\Models\Structure;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
-
+use App\Support\NotificationRecipients;
+use App\Notifications\DemandeCreeeNotification;
 
 class DemandeStageController extends Controller
 {
@@ -18,42 +18,57 @@ class DemandeStageController extends Controller
         return view('stagiaire.demande.create', compact('structures'));
     }
 
-
     public function store(Request $request)
     {
         $request->validate([
             'niveau_etude' => 'required|string|max:255',
-            'filiere'      => 'required|string|max:255',
+            'filiere' => 'required|string|max:255',
             'experience_professionnelle' => 'required|string|in:0 mois,2 mois,3 mois,4 mois,6 mois,1 an,2 ans,3 ans',
-            'universite'   => 'required|string|max:255',
+            'universite' => 'required|string|max:255',
             'structure_id' => 'required|exists:structures,id',
-            'telephone'    => 'required|string|max:30',
-            'type_stage'   => 'required|in:soutenance,perfectionnement',
-            'cv'   => 'required|file|mimes:pdf|max:5120',
+            'telephone' => 'required|string|max:30',
+            'type_stage' => 'required|in:soutenance,perfectionnement',
+            'cv' => 'required|file|mimes:pdf|max:5120',
             'cnib' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 
-        // Stocker les fichiers
         $cvPath = $request->file('cv')->store('uploads/cv', 'public');
         $cnibPath = $request->file('cnib')->store('uploads/cnib', 'public');
 
-        // Créer la demande
-        DemandeStage::create([
-            'user_id'      => Auth::id(),
+        $demande = DemandeStage::create([
+            'user_id' => Auth::id(),
             'niveau_etude' => $request->niveau_etude,
-            'filiere'      => $request->filiere,
+            'filiere' => $request->filiere,
             'experience_professionnelle' => $request->experience_professionnelle,
-            'universite'   => $request->universite,
+            'universite' => $request->universite,
             'type_stage' => $request->type_stage,
             'structure_id' => $request->structure_id,
-            'telephone'    => $request->telephone,
-            'cv_path'      => $cvPath,
-            'cnib_path'    => $cnibPath,
-            'statut'       => 'en_attente', // par défaut
+            'telephone' => $request->telephone,
+            'cv_path' => $cvPath,
+            'cnib_path' => $cnibPath,
+            'statut' => 'en_attente',
         ]);
 
+        $demande->load('stagiaire');
+
+        // Mail au stagiaire
+        if ($demande->stagiaire && $demande->stagiaire->email) {
+            $demande->stagiaire->notify(
+                new DemandeCreeeNotification($demande, 'stagiaire')
+            );
+        }
+
+        // Mail à tous les agents RH actifs
+        foreach (NotificationRecipients::agents() as $agent) {
+            if ($agent->email) {
+                $agent->notify(
+                    new DemandeCreeeNotification($demande, 'agent')
+                );
+            }
+        }
+
         return redirect()->route('stagiaire.demande.show')
-                        ->with('success', 'Votre demande a été envoyée. Vous serez contacté par les Ressources Humaines.');
+            ->with('success', 'Votre demande a été envoyée. Vous serez contacté par les Ressources Humaines.');
     }
 
     public function show()
@@ -71,6 +86,4 @@ class DemandeStageController extends Controller
 
         return view('agent.demandes.index', compact('demandes'));
     }
-    
-
 }

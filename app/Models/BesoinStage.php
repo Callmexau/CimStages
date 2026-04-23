@@ -32,11 +32,16 @@ class BesoinStage extends Model
         'periode',
         'statut',
         'demande_stage_id',
+        'is_seen_by_agent',
+        'seen_by_agent_id',
+        'seen_at',
     ];
 
     protected $casts = [
         'motifs' => 'array',
         'date_requete' => 'date',
+        'seen_at' => 'datetime',
+        'is_seen_by_agent' => 'boolean',
     ];
 
     public function responsable()
@@ -57,5 +62,10 @@ class BesoinStage extends Model
     public function demandeStage()
     {
         return $this->belongsTo(DemandeStage::class, 'demande_stage_id');
+    }
+
+    public function seenByAgent()
+    {
+        return $this->belongsTo(User::class, 'seen_by_agent_id');
     }
 }

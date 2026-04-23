@@ -6,22 +6,22 @@ use App\Http\Controllers\Controller;
 use App\Models\DemandeStage;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Notifications\DemandeTransmiseNotification;
+use App\Support\ActivityLogger;
 
 class DemandeController extends Controller
 {
     public function index(Request $request)
     {
         $query = DemandeStage::with(['stagiaire', 'responsable'])
-            ->where('is_renewal', false) // on garde ici seulement les demandes normales
+            ->where('is_renewal', false)
             ->where('statut', '!=', 'acceptee')
             ->orderBy('created_at', 'desc');
 
-        // Sans recherche : afficher seulement les demandes non orientées
         if (!$request->filled('search')) {
             $query->where('statut', 'en_attente');
         }
 
-        // Avec recherche : on autorise aussi les dossiers déjà orientés
         if ($request->filled('search')) {
             $search = trim($request->search);
 
@@ -76,9 +76,34 @@ class DemandeController extends Controller
             'responsable_id' => 'required|exists:users,id',
         ]);
 
+        $ancienResponsableId = $demande->responsable_id;
+        $ancienStatut = $demande->statut;
+
         $demande->responsable_id = $request->responsable_id;
         $demande->statut = 'transferée';
         $demande->save();
+
+        $demande->load(['stagiaire', 'responsable', 'structure']);
+
+        ActivityLogger::log(
+            'demande_transferred',
+            "Transfert de la demande de stage #{$demande->id} vers un responsable",
+            'DemandeStage',
+            $demande->id,
+            [
+                'ancien_responsable_id' => $ancienResponsableId,
+                'nouveau_responsable_id' => $demande->responsable_id,
+                'ancien_statut' => $ancienStatut,
+                'nouveau_statut' => $demande->statut,
+                'stagiaire_id' => $demande->user_id,
+                'structure_id' => $demande->structure_id,
+                'agent_id' => auth()->id(),
+            ]
+        );
+
+        if ($demande->responsable && $demande->responsable->email) {
+            $demande->responsable->notify(new DemandeTransmiseNotification($demande));
+        }
 
         return back()->with('success', 'Demande transférée avec succès au responsable.');
     }

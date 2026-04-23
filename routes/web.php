@@ -157,87 +157,59 @@ Route::prefix('agent')
         Route::get('/demandes', [DemandeController::class, 'index'])
             ->name('demande.index');
 
-        // ✅ LISTE
-        Route::get('/besoins', function () {
+        // LISTE DES BESOINS
+        Route::get('/besoins', [BesoinStageController::class, 'index'])
+            ->name('besoins.index');
 
-            $besoins = BesoinStage::orderBy('created_at', 'desc')->get();
+        // DÉTAILS D’UN BESOIN
+        Route::get('/besoins/{besoin}', [BesoinStageController::class, 'show'])
+            ->name('besoins.show');
 
-            return view('agent.besoins.index', compact('besoins'));
+        // TRANSFÉRER UN BESOIN AU DARH
+        Route::post('/besoins/{besoin}/transfer', [BesoinStageController::class, 'valider'])
+            ->name('besoins.transfer');
 
-        })->name('besoins.index');
+        // REJETER UN BESOIN
+        Route::post('/besoins/{besoin}/rejeter', [BesoinStageController::class, 'rejeter'])
+            ->name('besoins.rejeter');
 
-        // ✅ DETAILS
-        Route::get('/besoins/{besoin}', function (BesoinStage $besoin) {
+        // DEMANDES LIÉES À UN BESOIN
+        Route::get('/besoins/{besoin}/demandes', [BesoinStageController::class, 'demandesLiees'])
+            ->name('besoins.demandes');
 
-            return view('agent.besoins.show', compact('besoin'));
+        // PDF
+        Route::get('/besoins/{besoin}/pdf', function (\App\Models\BesoinStage $besoin) {
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('agent.besoins.pdf', compact('besoin'));
 
-        })->name('besoins.show');
+            return $pdf->download('besoin_stage_' . $besoin->id . '.pdf');
+        })->name('besoins.pdf');
 
-
-        // ✅ TRANSFER AU DARH
-        Route::post('/besoins/{besoin}/transfer', function (BesoinStage $besoin) {
-
-            if ($besoin->statut !== 'valide') {
-                $besoin->update([
-                    'statut' => 'en_attente_validation'
-                ]);
-            }
-
-            return redirect()
-                ->route('agent.besoins.index')
-                ->with('success', 'Besoin transféré au DARH.');
-
-        })->name('besoins.transfer');
-
-        Route::get('/besoins/{besoin}/demandes', 
-            [BesoinStageController::class, 'demandesLiees']
-        )->name('besoins.demandes');
-
+        // STAGIAIRES EN COURS
         Route::get('/stagiaires-en-cours', [DemandeController::class, 'stagiairesEnCours'])
             ->name('stagiaires.encours');
 
+        // TRANSFERT D’UNE DEMANDE À UN RESPONSABLE
         Route::post('/demandes/{demande}/transfer', [DemandeController::class, 'transfer'])
             ->name('demande.transfer');
 
-        Route::post('/besoins/{besoin}/rejeter', function (BesoinStage $besoin) {
-
-        // Vérifier que le statut est approprié
-        if ($besoin->statut !== 'rejete') {
-            $besoin->update([
-                'statut' => 'rejete'
-            ]);
-        }
-
-        return redirect()
-            ->route('agent.besoins.show', $besoin->id)
-            ->with('success', 'Besoin rejeté avec succès.');
-        })->name('besoins.rejeter');
-
-        // PDF
-        Route::get('/besoins/{besoin}/pdf', function (App\Models\BesoinStage $besoin) {
-
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('agent.besoins.pdf', compact('besoin'));
-
-        return $pdf->download('besoin_stage_'.$besoin->id.'.pdf');
-
-        })->name('besoins.pdf');
-
-        // Renouveler un stage
+        // RENOUVELER UNE DEMANDE (ancienne logique)
         Route::post('/demandes/{demande}/renew', [DemandeController::class, 'renew'])
-            ->name('agent.demande.renew');
+            ->name('demande.renew');
 
-        // Archives
+        // RENOUVELER UN STAGE À PARTIR D’UN BESOIN VALIDÉ
+        Route::post('/besoins/{besoin}/renouveler-stage', [BesoinStageController::class, 'renouvelerStage'])
+            ->name('besoins.renouvelerStage');
+
+        // ARCHIVES
         Route::get('/archives', [\App\Http\Controllers\Agent\ArchiveController::class, 'index'])
             ->name('archives.index');
 
+        // DÉTAIL D’UNE DEMANDE
         Route::get('/demandes/{demande}', [DemandeController::class, 'show'])
-                ->name('demande.show');
-
-        Route::post('/besoins/{besoin}/renouveler-stage', [BesoinStageController::class, 'renouvelerStage'])
-    ->name('besoins.renouvelerStage');
-
+            ->name('demande.show');
     });
 
+    
 /*
 |--------------------------------------------------------------------------
 | Responsable

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Role;
 use App\Models\Structure;
 use Illuminate\Http\Request;
+use App\Support\ActivityLogger;
 
 class AdminStructureController extends Controller
 {
@@ -14,6 +14,7 @@ class AdminStructureController extends Controller
     public function index()
     {
         $structures = Structure::all();
+
         return view('admin.structures.index', compact('structures'));
     }
 
@@ -36,10 +37,22 @@ class AdminStructureController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        Structure::create($request->only('name', 'abbreviation', 'description'));
+        $structure = Structure::create(
+            $request->only('name', 'abbreviation', 'description')
+        );
+
+        ActivityLogger::log(
+            'structure_created',
+            "Création de la structure {$structure->name}",
+            'Structure',
+            $structure->id,
+            [
+                'abbreviation' => $structure->abbreviation,
+            ]
+        );
 
         return redirect()->route('admin.structures.index')
-                         ->with('success', 'Structure créée avec succès.');
+            ->with('success', 'Structure créée avec succès.');
     }
 
     /**
@@ -48,6 +61,7 @@ class AdminStructureController extends Controller
     public function edit(string $id)
     {
         $structure = Structure::findOrFail($id);
+
         return view('admin.structures.edit', compact('structure'));
     }
 
@@ -63,10 +77,34 @@ class AdminStructureController extends Controller
         ]);
 
         $structure = Structure::findOrFail($id);
-        $structure->update($request->only('name', 'abbreviation', 'description'));
+
+        $ancienneValeur = [
+            'name' => $structure->name,
+            'abbreviation' => $structure->abbreviation,
+            'description' => $structure->description,
+        ];
+
+        $structure->update(
+            $request->only('name', 'abbreviation', 'description')
+        );
+
+        ActivityLogger::log(
+            'structure_updated',
+            "Modification de la structure {$structure->name}",
+            'Structure',
+            $structure->id,
+            [
+                'before' => $ancienneValeur,
+                'after' => [
+                    'name' => $structure->name,
+                    'abbreviation' => $structure->abbreviation,
+                    'description' => $structure->description,
+                ],
+            ]
+        );
 
         return redirect()->route('admin.structures.index')
-                         ->with('success', 'Structure mise à jour avec succès.');
+            ->with('success', 'Structure mise à jour avec succès.');
     }
 
     /**
@@ -75,9 +113,24 @@ class AdminStructureController extends Controller
     public function destroy(string $id)
     {
         $structure = Structure::findOrFail($id);
+
+        $structureData = [
+            'name' => $structure->name,
+            'abbreviation' => $structure->abbreviation,
+            'description' => $structure->description,
+        ];
+
+        ActivityLogger::log(
+            'structure_deleted',
+            "Suppression de la structure {$structure->name}",
+            'Structure',
+            $structure->id,
+            $structureData
+        );
+
         $structure->delete();
 
         return redirect()->route('admin.structures.index')
-                         ->with('success', 'Structure supprimée avec succès.');
+            ->with('success', 'Structure supprimée avec succès.');
     }
 }
